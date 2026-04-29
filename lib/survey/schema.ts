@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const GRADE_OPTIONS = ['K-2', '3-5', '6-8', '9-12'] as const
-export const CHILD_GRADE_OPTIONS = ['Under 5', 'K-2', '3-5', '6-8', '9-12'] as const
+export const CHILD_GRADE_OPTIONS = ['Pre-school', 'K-2', '3-5', '6-8', '9-12'] as const
 
 export const SUBJECT_OPTIONS = [
   'Science',
