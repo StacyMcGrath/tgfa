@@ -30,7 +30,7 @@ const requiredHintClass = 'ml-2 text-xs font-normal text-zinc-500'
 const optionRowClass =
   'flex items-start gap-3 rounded-md p-2 -mx-2 hover:bg-zinc-100 transition-colors cursor-pointer'
 const inputClass =
-  'w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent'
+  'w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-base text-zinc-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent'
 const textareaClass = `${inputClass} min-h-[88px]`
 const errorTextClass = 'text-sm text-red-600 mt-1'
 
