@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState, type ReactNode } from 'react'
-import { submitSurvey, type ActionState } from '@/app/actions'
+import { submitSurvey, type ActionState, type SubmittedValues } from '@/app/actions'
 import {
   GRADE_OPTIONS,
   CHILD_GRADE_OPTIONS,
@@ -25,27 +25,53 @@ const initialActionState: ActionState = { ok: false, error: null }
 
 const sectionClass = 'space-y-8'
 const groupClass = 'space-y-3'
-const legendClass = 'text-base font-medium text-zinc-900 dark:text-zinc-100'
-const requiredHintClass = 'ml-2 text-xs font-normal text-zinc-500 dark:text-zinc-400'
+const legendClass = 'text-lg font-semibold text-zinc-900'
+const requiredHintClass = 'ml-2 text-xs font-normal text-zinc-500'
 const optionRowClass =
-  'flex items-start gap-3 rounded-md p-2 -mx-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer'
+  'flex items-start gap-3 rounded-md p-2 -mx-2 hover:bg-zinc-100 transition-colors cursor-pointer'
 const inputClass =
-  'w-full rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent'
+  'w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent'
 const textareaClass = `${inputClass} min-h-[88px]`
-const errorTextClass = 'text-sm text-red-600 dark:text-red-400 mt-1'
+const errorTextClass = 'text-sm text-red-600 mt-1'
 
 export function SurveyForm() {
   const [state, action, pending] = useActionState(submitSurvey, initialActionState)
+  const values = state.values
   const [role, setRole] = useState<Role | null>(null)
   const [subjectsOther, setSubjectsOther] = useState(false)
   const [teacherTopicsOther, setTeacherTopicsOther] = useState(false)
   const [familyTopicsOther, setFamilyTopicsOther] = useState(false)
   const [hasBudget, setHasBudget] = useState<boolean | null>(null)
+  const [seenValues, setSeenValues] = useState<SubmittedValues | undefined>(undefined)
+
+  // When the server action returns new values (after a validation error),
+  // sync the conditional-UI state so role gate, "Other → specify", and
+  // budget-range sections re-appear matching what was submitted. Compares
+  // against `seenValues` so this only runs when values actually change —
+  // following React's "adjusting state on prop change" pattern.
+  if (values !== seenValues) {
+    setSeenValues(values)
+    if (values?.role === 'teacher' || values?.role === 'family') {
+      setRole(values.role)
+    }
+    if (values?.subjects) {
+      setSubjectsOther(values.subjects.includes('Other'))
+    }
+    if (values?.topics) {
+      if (values.role === 'teacher') {
+        setTeacherTopicsOther(values.topics.includes('Other'))
+      } else if (values.role === 'family') {
+        setFamilyTopicsOther(values.topics.includes('Other'))
+      }
+    }
+    if (values?.hasBudget === 'Yes') setHasBudget(true)
+    else if (values?.hasBudget === 'No') setHasBudget(false)
+  }
 
   const errs: FieldErrors = state.fieldErrors ?? {}
 
   return (
-    <form action={action} className={sectionClass}>
+    <form action={action} className={sectionClass} noValidate>
       {/* Honeypot — bots fill any input named "website"; real users don't see this. */}
       <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
         <label>
@@ -72,6 +98,7 @@ export function SurveyForm() {
 
       {role === 'teacher' && (
         <TeacherSections
+          values={values}
           errs={errs}
           subjectsOther={subjectsOther}
           setSubjectsOther={setSubjectsOther}
@@ -84,18 +111,19 @@ export function SurveyForm() {
 
       {role === 'family' && (
         <FamilySections
+          values={values}
           errs={errs}
           topicsOther={familyTopicsOther}
           setTopicsOther={setFamilyTopicsOther}
         />
       )}
 
-      {role && <ContactSection role={role} errs={errs} />}
+      {role && <ContactSection role={role} errs={errs} values={values} />}
 
       {state.error && (
         <div
           role="alert"
-          className="rounded-md border border-red-300 bg-red-50 dark:border-red-900 dark:bg-red-950/50 px-4 py-3 text-sm text-red-800 dark:text-red-200"
+          className="rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800"
         >
           {state.error}
         </div>
@@ -106,7 +134,7 @@ export function SurveyForm() {
           <button
             type="submit"
             disabled={pending}
-            className="w-full sm:w-auto rounded-full bg-emerald-700 hover:bg-emerald-800 disabled:bg-zinc-400 disabled:cursor-not-allowed dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-medium px-8 py-3 transition-colors"
+            className="w-full sm:w-auto rounded-full bg-emerald-700 hover:bg-emerald-800 disabled:bg-zinc-400 disabled:cursor-not-allowed text-white font-medium px-8 py-3 transition-colors"
           >
             {pending ? 'Sending…' : 'Submit'}
           </button>
@@ -132,18 +160,17 @@ function RoleOption({
     <label
       className={`flex items-center gap-3 rounded-lg border px-4 py-3 cursor-pointer transition-colors ${
         checked
-          ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 dark:border-emerald-500'
-          : 'border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600'
+          ? 'border-emerald-600 bg-emerald-50'
+          : 'border-zinc-300 hover:border-zinc-400'
       }`}
     >
       <input
         type="radio"
         name="role"
         value={value}
-        checked={checked}
+        defaultChecked={checked}
         onChange={() => onSelect(value)}
         className="h-4 w-4 accent-emerald-600"
-        required
       />
       <span className="text-base">{label}</span>
     </label>
@@ -151,6 +178,7 @@ function RoleOption({
 }
 
 function TeacherSections({
+  values,
   errs,
   subjectsOther,
   setSubjectsOther,
@@ -159,6 +187,7 @@ function TeacherSections({
   hasBudget,
   setHasBudget,
 }: {
+  values?: SubmittedValues
   errs: FieldErrors
   subjectsOther: boolean
   setSubjectsOther: (v: boolean) => void
@@ -174,6 +203,7 @@ function TeacherSections({
         legend="What grade(s) do you teach?"
         options={GRADE_OPTIONS}
         required
+        defaultSelected={values?.grades}
         error={errs['responses.grades']}
       />
 
@@ -184,12 +214,14 @@ function TeacherSections({
         required
         otherValue="Other"
         onOtherToggle={setSubjectsOther}
+        defaultSelected={values?.subjects}
         error={errs['responses.subjects']}
       >
         {subjectsOther && (
           <SpecifyInput
             name="subjectsOther"
             placeholder="Please specify"
+            defaultValue={values?.subjectsOther}
             error={errs['responses.subjectsOther']}
           />
         )}
@@ -202,12 +234,14 @@ function TeacherSections({
         required
         otherValue="Other"
         onOtherToggle={setTopicsOther}
+        defaultSelected={values?.topics}
         error={errs['responses.topics']}
       >
         {topicsOther && (
           <SpecifyInput
             name="topicsOther"
             placeholder="Please specify"
+            defaultValue={values?.topicsOther}
             error={errs['responses.topicsOther']}
           />
         )}
@@ -218,6 +252,7 @@ function TeacherSections({
         legend="What format would work best for your class?"
         options={FORMAT_OPTIONS}
         required
+        defaultValue={values?.format}
         error={errs['responses.format']}
       />
 
@@ -226,6 +261,7 @@ function TeacherSections({
         legend="What's an ideal program duration?"
         options={PROGRAM_DURATION_OPTIONS}
         required
+        defaultValue={values?.programDuration}
         error={errs['responses.programDuration']}
       />
 
@@ -234,6 +270,7 @@ function TeacherSections({
         legend="Which time(s) of year would work?"
         options={SEASON_OPTIONS}
         required
+        defaultSelected={values?.season}
         error={errs['responses.season']}
       />
 
@@ -242,6 +279,7 @@ function TeacherSections({
         legend="Approximately how many students would be in your group?"
         options={GROUP_SIZE_OPTIONS}
         required
+        defaultValue={values?.groupSize}
         error={errs['responses.groupSize']}
       />
 
@@ -251,7 +289,11 @@ function TeacherSections({
           <span className={requiredHintClass}>Required</span>
         </legend>
         <div className="space-y-1 pt-1">
-          <YesNoRadios name="hasBudget" onChange={setHasBudget} />
+          <YesNoRadios
+            name="hasBudget"
+            onChange={setHasBudget}
+            defaultValue={values?.hasBudget}
+          />
         </div>
         {errs['responses.hasBudget'] && (
           <p className={errorTextClass}>{errs['responses.hasBudget'][0]}</p>
@@ -263,6 +305,7 @@ function TeacherSections({
               legend="What's your typical expense per student?"
               options={BUDGET_RANGE_OPTIONS}
               required
+              defaultValue={values?.budgetRange}
               error={errs['responses.budgetRange']}
               dense
             />
@@ -276,7 +319,7 @@ function TeacherSections({
           <span className={requiredHintClass}>Required</span>
         </legend>
         <div className="space-y-1 pt-1">
-          <YesNoRadios name="hasFieldTripped" />
+          <YesNoRadios name="hasFieldTripped" defaultValue={values?.hasFieldTripped} />
         </div>
         {errs['responses.hasFieldTripped'] && (
           <p className={errorTextClass}>{errs['responses.hasFieldTripped'][0]}</p>
@@ -288,34 +331,44 @@ function TeacherSections({
         legend="What's a reasonable travel time for a class visit (each way)?"
         options={TRAVEL_TIME_OPTIONS}
         required
+        defaultValue={values?.travelTime}
         error={errs['responses.travelTime']}
       />
 
       <TextareaQuestion
         name="curricularTieIns"
         legend="Which curricular units or standards could a garden visit support? (e.g., plant biology, nutrition, food systems, ecology)"
+        defaultValue={values?.curricularTieIns}
       />
 
       <TextareaQuestion
         name="priorityTieIns"
         legend="How might a garden visit connect to broader priorities at your school or district? (e.g., food security awareness, community service, equity, social-emotional learning)"
+        defaultValue={values?.priorityTieIns}
       />
 
       <TextareaQuestion
         name="perfectVisit"
         legend="If you could design the perfect garden visit for your students, what would it look like?"
+        defaultValue={values?.perfectVisit}
       />
 
-      <TextareaQuestion name="anythingElse" legend="Anything else we should know?" />
+      <TextareaQuestion
+        name="anythingElse"
+        legend="Anything else we should know?"
+        defaultValue={values?.anythingElse}
+      />
     </div>
   )
 }
 
 function FamilySections({
+  values,
   errs,
   topicsOther,
   setTopicsOther,
 }: {
+  values?: SubmittedValues
   errs: FieldErrors
   topicsOther: boolean
   setTopicsOther: (v: boolean) => void
@@ -327,6 +380,7 @@ function FamilySections({
         legend="What grade(s) are your child(ren) in?"
         options={CHILD_GRADE_OPTIONS}
         required
+        defaultSelected={values?.childGrades}
         error={errs['responses.childGrades']}
       />
 
@@ -337,12 +391,14 @@ function FamilySections({
         required
         otherValue="Other"
         onOtherToggle={setTopicsOther}
+        defaultSelected={values?.topics}
         error={errs['responses.topics']}
       >
         {topicsOther && (
           <SpecifyInput
             name="topicsOther"
             placeholder="Please specify"
+            defaultValue={values?.topicsOther}
             error={errs['responses.topicsOther']}
           />
         )}
@@ -353,6 +409,7 @@ function FamilySections({
         legend="How would you most likely participate?"
         options={PARTICIPATION_OPTIONS}
         required
+        defaultValue={values?.participation}
         error={errs['responses.participation']}
       />
 
@@ -361,6 +418,7 @@ function FamilySections({
         legend="What's an ideal program duration?"
         options={PROGRAM_DURATION_OPTIONS}
         required
+        defaultValue={values?.programDuration}
         error={errs['responses.programDuration']}
       />
 
@@ -369,6 +427,7 @@ function FamilySections({
         legend="Which time(s) of year would work for your family?"
         options={SEASON_OPTIONS}
         required
+        defaultSelected={values?.season}
         error={errs['responses.season']}
       />
 
@@ -377,30 +436,56 @@ function FamilySections({
         legend="What's a reasonable travel time for a visit (each way)?"
         options={TRAVEL_TIME_OPTIONS}
         required
+        defaultValue={values?.travelTime}
         error={errs['responses.travelTime']}
       />
 
       <TextareaQuestion
         name="perfectExperience"
         legend="If you could design the perfect garden experience for your child(ren), what would it look like?"
+        defaultValue={values?.perfectExperience}
       />
 
-      <TextareaQuestion name="anythingElse" legend="Anything else we should know?" />
+      <TextareaQuestion
+        name="anythingElse"
+        legend="Anything else we should know?"
+        defaultValue={values?.anythingElse}
+      />
     </div>
   )
 }
 
-function ContactSection({ role, errs }: { role: Role; errs: FieldErrors }) {
+function ContactSection({
+  role,
+  errs,
+  values,
+}: {
+  role: Role
+  errs: FieldErrors
+  values?: SubmittedValues
+}) {
   return (
-    <fieldset className={`${groupClass} pt-4 border-t border-zinc-200 dark:border-zinc-800`}>
+    <fieldset className={`${groupClass} pt-4 border-t border-zinc-200`}>
       <legend className={legendClass}>
         Want updates as the program takes shape?
         <span className={requiredHintClass}>Optional — leave blank to submit anonymously</span>
       </legend>
       <div className="space-y-3 pt-2">
-        <LabeledText name="contactName" label="Name" />
-        <LabeledText name="contactEmail" label="Email" type="email" error={errs['contact.email']} />
-        {role === 'teacher' && <LabeledText name="contactSchool" label="School" />}
+        <LabeledText name="contactName" label="Name" defaultValue={values?.contactName} />
+        <LabeledText
+          name="contactEmail"
+          label="Email"
+          type="email"
+          defaultValue={values?.contactEmail}
+          error={errs['contact.email']}
+        />
+        {role === 'teacher' && (
+          <LabeledText
+            name="contactSchool"
+            label="School"
+            defaultValue={values?.contactSchool}
+          />
+        )}
       </div>
     </fieldset>
   )
@@ -413,6 +498,7 @@ function CheckboxQuestion({
   required,
   otherValue,
   onOtherToggle,
+  defaultSelected,
   error,
   children,
 }: {
@@ -422,6 +508,7 @@ function CheckboxQuestion({
   required?: boolean
   otherValue?: string
   onOtherToggle?: (checked: boolean) => void
+  defaultSelected?: readonly string[]
   error?: string[]
   children?: ReactNode
 }) {
@@ -438,6 +525,7 @@ function CheckboxQuestion({
               type="checkbox"
               name={name}
               value={opt}
+              defaultChecked={defaultSelected?.includes(opt)}
               className="mt-0.5 h-4 w-4 accent-emerald-600"
               onChange={
                 otherValue && opt === otherValue
@@ -460,6 +548,7 @@ function RadioQuestion({
   legend,
   options,
   required,
+  defaultValue,
   error,
   dense,
 }: {
@@ -467,23 +556,24 @@ function RadioQuestion({
   legend: string
   options: readonly string[]
   required?: boolean
+  defaultValue?: string
   error?: string[]
   dense?: boolean
 }) {
   return (
     <fieldset className={groupClass}>
-      <legend className={dense ? 'text-sm font-medium text-zinc-800 dark:text-zinc-200' : legendClass}>
+      <legend className={dense ? 'text-sm font-medium text-zinc-800' : legendClass}>
         {legend}
         {required && !dense && <span className={requiredHintClass}>Required</span>}
       </legend>
       <div className="space-y-1 pt-1">
-        {options.map((opt, i) => (
+        {options.map((opt) => (
           <label key={opt} className={optionRowClass}>
             <input
               type="radio"
               name={name}
               value={opt}
-              required={required && i === 0}
+              defaultChecked={defaultValue === opt}
               className="mt-0.5 h-4 w-4 accent-emerald-600"
             />
             <span className="text-sm">{opt}</span>
@@ -498,19 +588,21 @@ function RadioQuestion({
 function YesNoRadios({
   name,
   onChange,
+  defaultValue,
 }: {
   name: string
   onChange?: (val: boolean) => void
+  defaultValue?: string
 }) {
   return (
     <>
-      {(['Yes', 'No'] as const).map((v, i) => (
+      {(['Yes', 'No'] as const).map((v) => (
         <label key={v} className={optionRowClass}>
           <input
             type="radio"
             name={name}
             value={v}
-            required={i === 0}
+            defaultChecked={defaultValue === v}
             className="mt-0.5 h-4 w-4 accent-emerald-600"
             onChange={onChange ? () => onChange(v === 'Yes') : undefined}
           />
@@ -524,10 +616,12 @@ function YesNoRadios({
 function SpecifyInput({
   name,
   placeholder,
+  defaultValue,
   error,
 }: {
   name: string
   placeholder?: string
+  defaultValue?: string
   error?: string[]
 }) {
   return (
@@ -536,8 +630,8 @@ function SpecifyInput({
         type="text"
         name={name}
         placeholder={placeholder}
+        defaultValue={defaultValue ?? ''}
         maxLength={200}
-        required
         className={inputClass}
       />
       {error && <p className={errorTextClass}>{error[0]}</p>}
@@ -545,7 +639,15 @@ function SpecifyInput({
   )
 }
 
-function TextareaQuestion({ name, legend }: { name: string; legend: string }) {
+function TextareaQuestion({
+  name,
+  legend,
+  defaultValue,
+}: {
+  name: string
+  legend: string
+  defaultValue?: string
+}) {
   return (
     <fieldset className={groupClass}>
       <legend className={legendClass}>
@@ -554,6 +656,7 @@ function TextareaQuestion({ name, legend }: { name: string; legend: string }) {
       </legend>
       <textarea
         name={name}
+        defaultValue={defaultValue ?? ''}
         maxLength={2000}
         className={textareaClass}
         rows={3}
@@ -566,19 +669,22 @@ function LabeledText({
   name,
   label,
   type = 'text',
+  defaultValue,
   error,
 }: {
   name: string
   label: string
   type?: string
+  defaultValue?: string
   error?: string[]
 }) {
   return (
     <label className="block">
-      <span className="text-sm text-zinc-700 dark:text-zinc-300">{label}</span>
+      <span className="text-sm text-zinc-700">{label}</span>
       <input
         type={type}
         name={name}
+        defaultValue={defaultValue ?? ''}
         maxLength={200}
         className={`${inputClass} mt-1`}
         autoComplete={

@@ -4,10 +4,38 @@ import { redirect } from 'next/navigation'
 import { getServiceRoleClient } from '@/lib/supabase/server'
 import { SurveySubmission } from '@/lib/survey/schema'
 
+export type SubmittedValues = {
+  role?: string
+  grades?: string[]
+  subjects?: string[]
+  subjectsOther?: string
+  topics?: string[]
+  topicsOther?: string
+  format?: string
+  programDuration?: string
+  season?: string[]
+  groupSize?: string
+  hasBudget?: string
+  budgetRange?: string
+  hasFieldTripped?: string
+  travelTime?: string
+  curricularTieIns?: string
+  priorityTieIns?: string
+  perfectVisit?: string
+  anythingElse?: string
+  childGrades?: string[]
+  participation?: string
+  perfectExperience?: string
+  contactName?: string
+  contactEmail?: string
+  contactSchool?: string
+}
+
 export type ActionState = {
   ok: boolean
   error: string | null
   fieldErrors?: Record<string, string[]>
+  values?: SubmittedValues
 }
 
 export async function submitSurvey(
@@ -18,11 +46,14 @@ export async function submitSurvey(
     redirect('/thanks')
   }
 
+  const values = captureValues(formData)
   const role = formData.get('role')
+
   if (role !== 'teacher' && role !== 'family') {
     return {
       ok: false,
       error: 'Please choose whether you are a teacher or a parent / caregiver.',
+      values,
     }
   }
 
@@ -43,6 +74,7 @@ export async function submitSurvey(
       ok: false,
       error: 'A few answers need attention.',
       fieldErrors,
+      values,
     }
   }
 
@@ -78,6 +110,7 @@ export async function submitSurvey(
       return {
         ok: false,
         error: 'Sorry, something went wrong saving your response. Please try again.',
+        values,
       }
     }
   } else {
@@ -100,11 +133,51 @@ export async function submitSurvey(
       return {
         ok: false,
         error: 'Sorry, something went wrong saving your response. Please try again.',
+        values,
       }
     }
   }
 
   redirect('/thanks')
+}
+
+function captureValues(fd: FormData): SubmittedValues {
+  return {
+    role: rawString(fd, 'role'),
+    grades: rawAll(fd, 'grades'),
+    subjects: rawAll(fd, 'subjects'),
+    subjectsOther: rawString(fd, 'subjectsOther'),
+    topics: rawAll(fd, 'topics'),
+    topicsOther: rawString(fd, 'topicsOther'),
+    format: rawString(fd, 'format'),
+    programDuration: rawString(fd, 'programDuration'),
+    season: rawAll(fd, 'season'),
+    groupSize: rawString(fd, 'groupSize'),
+    hasBudget: rawString(fd, 'hasBudget'),
+    budgetRange: rawString(fd, 'budgetRange'),
+    hasFieldTripped: rawString(fd, 'hasFieldTripped'),
+    travelTime: rawString(fd, 'travelTime'),
+    curricularTieIns: rawString(fd, 'curricularTieIns'),
+    priorityTieIns: rawString(fd, 'priorityTieIns'),
+    perfectVisit: rawString(fd, 'perfectVisit'),
+    anythingElse: rawString(fd, 'anythingElse'),
+    childGrades: rawAll(fd, 'childGrades'),
+    participation: rawString(fd, 'participation'),
+    perfectExperience: rawString(fd, 'perfectExperience'),
+    contactName: rawString(fd, 'contactName'),
+    contactEmail: rawString(fd, 'contactEmail'),
+    contactSchool: rawString(fd, 'contactSchool'),
+  }
+}
+
+function rawString(fd: FormData, name: string): string | undefined {
+  const v = fd.get(name)
+  return typeof v === 'string' && v !== '' ? v : undefined
+}
+
+function rawAll(fd: FormData, name: string): string[] | undefined {
+  const arr = fd.getAll(name).filter((v): v is string => typeof v === 'string')
+  return arr.length > 0 ? arr : undefined
 }
 
 function text(fd: FormData, name: string): string | undefined {

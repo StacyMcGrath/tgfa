@@ -4,11 +4,17 @@ export const GRADE_OPTIONS = ['K-2', '3-5', '6-8', '9-12'] as const
 export const CHILD_GRADE_OPTIONS = ['Pre-school', 'K-2', '3-5', '6-8', '9-12'] as const
 
 export const SUBJECT_OPTIONS = [
+  'Art',
+  'Career & Technical Ed',
+  'Computer Science / Tech',
+  'English / Language Arts',
+  'Health',
+  'Math',
+  'Music',
+  'Physical Education',
   'Science',
   'Social Studies',
-  'Health',
-  'Language Arts',
-  'Multiple subjects',
+  'World Languages',
   'Other',
 ] as const
 
@@ -66,7 +72,12 @@ export const PROGRAM_DURATION_OPTIONS = [
 ] as const
 
 const nonEmpty = <T extends [string, ...string[]]>(values: readonly [...T]) =>
-  z.array(z.enum(values)).min(1)
+  z.array(z.enum(values)).min(1, { message: 'Please pick at least one option.' })
+
+const oneOf = <T extends [string, ...string[]]>(values: readonly [...T]) =>
+  z.enum(values, { message: 'Please pick an option.' })
+
+const yesNo = z.boolean({ message: 'Please pick yes or no.' })
 
 const longText = z.string().trim().max(2000).optional()
 const shortText = z.string().trim().max(200).optional()
@@ -78,14 +89,14 @@ const TeacherResponses = z
     subjectsOther: shortText,
     topics: nonEmpty(TEACHER_TOPIC_OPTIONS),
     topicsOther: shortText,
-    format: z.enum(FORMAT_OPTIONS),
-    programDuration: z.enum(PROGRAM_DURATION_OPTIONS),
+    format: oneOf(FORMAT_OPTIONS),
+    programDuration: oneOf(PROGRAM_DURATION_OPTIONS),
     season: nonEmpty(SEASON_OPTIONS),
-    groupSize: z.enum(GROUP_SIZE_OPTIONS),
-    hasBudget: z.boolean(),
+    groupSize: oneOf(GROUP_SIZE_OPTIONS),
+    hasBudget: yesNo,
     budgetRange: z.enum(BUDGET_RANGE_OPTIONS).optional(),
-    hasFieldTripped: z.boolean(),
-    travelTime: z.enum(TRAVEL_TIME_OPTIONS),
+    hasFieldTripped: yesNo,
+    travelTime: oneOf(TRAVEL_TIME_OPTIONS),
     curricularTieIns: longText,
     priorityTieIns: longText,
     perfectVisit: longText,
@@ -120,10 +131,10 @@ const FamilyResponses = z
     childGrades: nonEmpty(CHILD_GRADE_OPTIONS),
     topics: nonEmpty(FAMILY_TOPIC_OPTIONS),
     topicsOther: shortText,
-    participation: z.enum(PARTICIPATION_OPTIONS),
-    programDuration: z.enum(PROGRAM_DURATION_OPTIONS),
+    participation: oneOf(PARTICIPATION_OPTIONS),
+    programDuration: oneOf(PROGRAM_DURATION_OPTIONS),
     season: nonEmpty(SEASON_OPTIONS),
-    travelTime: z.enum(TRAVEL_TIME_OPTIONS),
+    travelTime: oneOf(TRAVEL_TIME_OPTIONS),
     perfectExperience: longText,
     anythingElse: longText,
   })
