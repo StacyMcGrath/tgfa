@@ -35,7 +35,7 @@ export const FAMILY_TOPIC_OPTIONS = [
 ] as const
 
 export const FORMAT_OPTIONS = [
-  'Field trip to a farm or garden',
+  'Field trip to a garden',
   'In-school visit from us',
   'Either works',
   'Not sure yet',
@@ -52,10 +52,17 @@ export const SEASON_OPTIONS = ['Fall', 'Winter', 'Spring', 'Summer'] as const
 export const GROUP_SIZE_OPTIONS = ['Under 15', '15–30', '30+'] as const
 export const BUDGET_RANGE_OPTIONS = ['Under $5', '$5–10', '$10–20', '$20+'] as const
 export const TRAVEL_TIME_OPTIONS = [
-  'Under 30 min',
+  'Less than 15 min',
+  '15–30 min',
   '30–60 min',
+  'Over 1 hour',
+] as const
+
+export const PROGRAM_DURATION_OPTIONS = [
+  'Less than 1 hour',
   '1–2 hours',
-  'Over 2 hours',
+  '2–4 hours',
+  'Over 4 hours',
 ] as const
 
 const nonEmpty = <T extends [string, ...string[]]>(values: readonly [...T]) =>
@@ -72,13 +79,15 @@ const TeacherResponses = z
     topics: nonEmpty(TEACHER_TOPIC_OPTIONS),
     topicsOther: shortText,
     format: z.enum(FORMAT_OPTIONS),
+    programDuration: z.enum(PROGRAM_DURATION_OPTIONS),
     season: nonEmpty(SEASON_OPTIONS),
     groupSize: z.enum(GROUP_SIZE_OPTIONS),
     hasBudget: z.boolean(),
     budgetRange: z.enum(BUDGET_RANGE_OPTIONS).optional(),
     hasFieldTripped: z.boolean(),
     travelTime: z.enum(TRAVEL_TIME_OPTIONS),
-    standards: longText,
+    curricularTieIns: longText,
+    priorityTieIns: longText,
     perfectVisit: longText,
     anythingElse: longText,
   })
@@ -112,7 +121,9 @@ const FamilyResponses = z
     topics: nonEmpty(FAMILY_TOPIC_OPTIONS),
     topicsOther: shortText,
     participation: z.enum(PARTICIPATION_OPTIONS),
+    programDuration: z.enum(PROGRAM_DURATION_OPTIONS),
     season: nonEmpty(SEASON_OPTIONS),
+    travelTime: z.enum(TRAVEL_TIME_OPTIONS),
     perfectExperience: longText,
     anythingElse: longText,
   })

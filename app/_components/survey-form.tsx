@@ -14,6 +14,7 @@ import {
   GROUP_SIZE_OPTIONS,
   BUDGET_RANGE_OPTIONS,
   TRAVEL_TIME_OPTIONS,
+  PROGRAM_DURATION_OPTIONS,
 } from '@/lib/survey/schema'
 
 type Role = 'teacher' | 'family'
@@ -220,6 +221,14 @@ function TeacherSections({
         error={errs['responses.format']}
       />
 
+      <RadioQuestion
+        name="programDuration"
+        legend="What's an ideal program duration?"
+        options={PROGRAM_DURATION_OPTIONS}
+        required
+        error={errs['responses.programDuration']}
+      />
+
       <CheckboxQuestion
         name="season"
         legend="Which time(s) of year would work?"
@@ -276,20 +285,25 @@ function TeacherSections({
 
       <RadioQuestion
         name="travelTime"
-        legend="What's a reasonable travel time for a class visit?"
+        legend="What's a reasonable travel time for a class visit (each way)?"
         options={TRAVEL_TIME_OPTIONS}
         required
         error={errs['responses.travelTime']}
       />
 
       <TextareaQuestion
-        name="standards"
-        legend="Are there specific units or standards a farm visit could support?"
+        name="curricularTieIns"
+        legend="Which curricular units or standards could a garden visit support? (e.g., plant biology, nutrition, food systems, ecology)"
+      />
+
+      <TextareaQuestion
+        name="priorityTieIns"
+        legend="How might a garden visit connect to broader priorities at your school or district? (e.g., food security awareness, community service, equity, social-emotional learning)"
       />
 
       <TextareaQuestion
         name="perfectVisit"
-        legend="If you could design the perfect farm visit for your students, what would it look like?"
+        legend="If you could design the perfect garden visit for your students, what would it look like?"
       />
 
       <TextareaQuestion name="anythingElse" legend="Anything else we should know?" />
@@ -342,6 +356,14 @@ function FamilySections({
         error={errs['responses.participation']}
       />
 
+      <RadioQuestion
+        name="programDuration"
+        legend="What's an ideal program duration?"
+        options={PROGRAM_DURATION_OPTIONS}
+        required
+        error={errs['responses.programDuration']}
+      />
+
       <CheckboxQuestion
         name="season"
         legend="Which time(s) of year would work for your family?"
@@ -350,9 +372,17 @@ function FamilySections({
         error={errs['responses.season']}
       />
 
+      <RadioQuestion
+        name="travelTime"
+        legend="What's a reasonable travel time for a visit (each way)?"
+        options={TRAVEL_TIME_OPTIONS}
+        required
+        error={errs['responses.travelTime']}
+      />
+
       <TextareaQuestion
         name="perfectExperience"
-        legend="If you could design the perfect farm experience for your child(ren), what would it look like?"
+        legend="If you could design the perfect garden experience for your child(ren), what would it look like?"
       />
 
       <TextareaQuestion name="anythingElse" legend="Anything else we should know?" />

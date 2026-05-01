@@ -47,17 +47,60 @@ export async function submitSurvey(
   }
 
   const supabase = getServiceRoleClient()
-  const { error } = await supabase.from('survey_submissions').insert({
-    role: parsed.data.role,
-    responses: parsed.data.responses,
-    contact: parsed.data.contact ?? null,
-  })
+  const c = parsed.data.contact
 
-  if (error) {
-    console.error('survey_submissions insert failed:', error)
-    return {
-      ok: false,
-      error: 'Sorry, something went wrong saving your response. Please try again.',
+  if (parsed.data.role === 'teacher') {
+    const r = parsed.data.responses
+    const { error } = await supabase.from('teacher_submissions').insert({
+      grades: r.grades,
+      subjects: r.subjects,
+      subjects_other: r.subjectsOther ?? null,
+      topics: r.topics,
+      topics_other: r.topicsOther ?? null,
+      format: r.format,
+      program_duration: r.programDuration,
+      season: r.season,
+      group_size: r.groupSize,
+      has_budget: r.hasBudget,
+      budget_range: r.budgetRange ?? null,
+      has_field_tripped: r.hasFieldTripped,
+      travel_time: r.travelTime,
+      curricular_tie_ins: r.curricularTieIns ?? null,
+      priority_tie_ins: r.priorityTieIns ?? null,
+      perfect_visit: r.perfectVisit ?? null,
+      anything_else: r.anythingElse ?? null,
+      contact_name: c?.name ?? null,
+      contact_email: c?.email ?? null,
+      contact_school: c?.school ?? null,
+    })
+    if (error) {
+      console.error('teacher_submissions insert failed:', error)
+      return {
+        ok: false,
+        error: 'Sorry, something went wrong saving your response. Please try again.',
+      }
+    }
+  } else {
+    const r = parsed.data.responses
+    const { error } = await supabase.from('family_submissions').insert({
+      child_grades: r.childGrades,
+      topics: r.topics,
+      topics_other: r.topicsOther ?? null,
+      participation: r.participation,
+      program_duration: r.programDuration,
+      season: r.season,
+      travel_time: r.travelTime,
+      perfect_experience: r.perfectExperience ?? null,
+      anything_else: r.anythingElse ?? null,
+      contact_name: c?.name ?? null,
+      contact_email: c?.email ?? null,
+    })
+    if (error) {
+      console.error('family_submissions insert failed:', error)
+      return {
+        ok: false,
+        error: 'Sorry, something went wrong saving your response. Please try again.',
+      }
     }
   }
 
@@ -90,13 +133,15 @@ function buildTeacherResponses(fd: FormData) {
     topics: all(fd, 'topics'),
     topicsOther: text(fd, 'topicsOther'),
     format: text(fd, 'format'),
+    programDuration: text(fd, 'programDuration'),
     season: all(fd, 'season'),
     groupSize: text(fd, 'groupSize'),
     hasBudget: bool(fd, 'hasBudget'),
     budgetRange: text(fd, 'budgetRange'),
     hasFieldTripped: bool(fd, 'hasFieldTripped'),
     travelTime: text(fd, 'travelTime'),
-    standards: text(fd, 'standards'),
+    curricularTieIns: text(fd, 'curricularTieIns'),
+    priorityTieIns: text(fd, 'priorityTieIns'),
     perfectVisit: text(fd, 'perfectVisit'),
     anythingElse: text(fd, 'anythingElse'),
   }
@@ -108,7 +153,9 @@ function buildFamilyResponses(fd: FormData) {
     topics: all(fd, 'topics'),
     topicsOther: text(fd, 'topicsOther'),
     participation: text(fd, 'participation'),
+    programDuration: text(fd, 'programDuration'),
     season: all(fd, 'season'),
+    travelTime: text(fd, 'travelTime'),
     perfectExperience: text(fd, 'perfectExperience'),
     anythingElse: text(fd, 'anythingElse'),
   }
