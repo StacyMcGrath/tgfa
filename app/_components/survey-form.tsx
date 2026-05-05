@@ -30,7 +30,7 @@ const requiredHintClass = 'ml-2 text-xs font-normal text-zinc-500'
 const optionRowClass =
   'flex items-start gap-3 rounded-md p-2 -mx-2 hover:bg-zinc-100 transition-colors cursor-pointer'
 const inputClass =
-  'w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-base text-zinc-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent'
+  'w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-base text-zinc-900 focus:outline-none focus:ring-2 focus:ring-brand-dark-blue focus:border-transparent'
 const textareaClass = `${inputClass} min-h-[88px]`
 const errorTextClass = 'text-sm text-red-600 mt-1'
 
@@ -134,7 +134,7 @@ export function SurveyForm() {
           <button
             type="submit"
             disabled={pending}
-            className="w-full sm:w-auto rounded-full bg-emerald-700 hover:bg-emerald-800 disabled:bg-zinc-400 disabled:cursor-not-allowed text-white font-medium px-8 py-3 transition-colors"
+            className="w-full sm:w-auto rounded-full bg-brand-dark-blue hover:bg-brand-dark-blue/90 disabled:bg-zinc-400 disabled:cursor-not-allowed text-white font-medium px-8 py-3 transition-colors"
           >
             {pending ? 'Sending…' : 'Submit'}
           </button>
@@ -160,7 +160,7 @@ function RoleOption({
     <label
       className={`flex items-center gap-3 rounded-lg border px-4 py-3 cursor-pointer transition-colors ${
         checked
-          ? 'border-emerald-600 bg-emerald-50'
+          ? 'border-brand-dark-blue bg-brand-dark-blue/10'
           : 'border-zinc-300 hover:border-zinc-400'
       }`}
     >
@@ -170,7 +170,7 @@ function RoleOption({
         value={value}
         defaultChecked={checked}
         onChange={() => onSelect(value)}
-        className="h-4 w-4 accent-emerald-600"
+        className="h-4 w-4 accent-brand-dark-blue"
       />
       <span className="text-base">{label}</span>
     </label>
@@ -299,7 +299,7 @@ function TeacherSections({
           <p className={errorTextClass}>{errs['responses.hasBudget'][0]}</p>
         )}
         {hasBudget === true && (
-          <div className="mt-4 ml-6 border-l-2 border-emerald-600/40 pl-4">
+          <div className="mt-4 ml-6 border-l-2 border-brand-dark-blue/40 pl-4">
             <RadioQuestion
               name="budgetRange"
               legend="What's your typical expense per student?"
@@ -526,7 +526,7 @@ function CheckboxQuestion({
               name={name}
               value={opt}
               defaultChecked={defaultSelected?.includes(opt)}
-              className="mt-0.5 h-4 w-4 accent-emerald-600"
+              className="mt-0.5 h-4 w-4 accent-brand-dark-blue"
               onChange={
                 otherValue && opt === otherValue
                   ? (e) => onOtherToggle?.(e.target.checked)
@@ -574,7 +574,7 @@ function RadioQuestion({
               name={name}
               value={opt}
               defaultChecked={defaultValue === opt}
-              className="mt-0.5 h-4 w-4 accent-emerald-600"
+              className="mt-0.5 h-4 w-4 accent-brand-dark-blue"
             />
             <span className="text-sm">{opt}</span>
           </label>
@@ -603,7 +603,7 @@ function YesNoRadios({
             name={name}
             value={v}
             defaultChecked={defaultValue === v}
-            className="mt-0.5 h-4 w-4 accent-emerald-600"
+            className="mt-0.5 h-4 w-4 accent-brand-dark-blue"
             onChange={onChange ? () => onChange(v === 'Yes') : undefined}
           />
           <span className="text-sm">{v}</span>

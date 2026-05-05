@@ -3,7 +3,28 @@
 :root {
   color-scheme: light;
   --background: #fbf7ee;
-  --foreground: #2a2825;
+  --foreground: #3e3e3e;
+
+  /* Brand palette — names match how the organization refers to them. */
+  --brand-dark-blue: #0f3c57;
+  --brand-light-green: #d0de97;
+  --brand-dark-green: #9ab643;
+  --brand-orange: #e2602e;
+  --brand-red: #b03812;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-brand-dark-blue: var(--brand-dark-blue);
+  --color-brand-light-green: var(--brand-light-green);
+  --color-brand-dark-green: var(--brand-dark-green);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-red: var(--brand-red);
+
+  --font-sans: var(--font-roboto);
+  --font-display: var(--font-oswald);
 }
 
 html,
@@ -12,15 +33,10 @@ body {
   color: var(--foreground);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+body {
+  font-family: var(--font-roboto), system-ui, sans-serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+h1, h2, h3 {
+  font-family: var(--font-oswald), var(--font-roboto), system-ui, sans-serif;
 }
