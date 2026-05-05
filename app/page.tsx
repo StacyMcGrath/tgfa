@@ -8,12 +8,12 @@ export default function Home() {
           <svg
             viewBox="0 0 24 24"
             fill="currentColor"
-            className="h-7 w-7 text-emerald-700"
+            className="h-7 w-7 text-brand-dark-green"
             aria-hidden="true"
           >
             <path d="M20 4c-1 0-12-1-15 8-1 3 0 7 3 9 1-3 3-6 6-7-2 2-4 5-5 8 1 0 2 1 3 1 8 0 13-9 8-19z" />
           </svg>
-          <h1 className="text-3xl font-semibold tracking-tight text-emerald-900">
+          <h1 className="text-3xl font-semibold tracking-tight text-brand-dark-blue">
             Field trip interest survey
           </h1>
         </div>
