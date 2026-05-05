@@ -22,7 +22,7 @@ export default function LoginPage() {
         Sign in
       </h1>
       <p className="mt-2 text-center text-sm text-zinc-600">
-        Enter your email and we&apos;ll send a magic link.
+        Enter your admin credentials to continue.
       </p>
       <Suspense fallback={null}>
         <LoginForm />

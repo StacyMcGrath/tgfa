@@ -1,9 +1,9 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-// TEMP: set to true to re-enable the /admin auth gate. Currently disabled so
-// the dashboard UI can be exercised without configuring Supabase Auth first.
-const AUTH_ENABLED = false
+// Auth gate for /admin. Toggle to false locally if you ever want to bypass auth
+// for UI-only testing.
+const AUTH_ENABLED = true
 
 export async function proxy(request: NextRequest) {
   if (!AUTH_ENABLED) {
